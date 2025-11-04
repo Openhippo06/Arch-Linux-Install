@@ -1,7 +1,7 @@
 # Arch-Linux-Install By: William Reinhart
 This is meant to showcase my successful attempt at installing arch linux with notes on the failures at the end
 
-#Overview: this first part if the successful code that led to the completion, i will document all the code that I used in the order that I used it.
+#Overview: this first part if the successful code that led to the completion, I will document all the code that I used in the order that I used it.
 
 1. 
 # System Setup
@@ -13,39 +13,39 @@ This is meant to showcase my successful attempt at installing arch linux with no
 
 
 2. 
-#Creation and formatting the partitions and mounting them
+# Creation and formatting the partitions and mounting them
 cfdisk /dev/nvme0n1
 
-#created a boot partition (p1) around 2MB and made a root partition (p2) around 20GB
+# created a boot partition (p1) around 2MB and made a root partition (p2) around 20GB
 
-#formatted the root partition to ext4
+# formatted the root partition to ext4
 mkfs.ext4 /dev/nvme0n1p2
 mount /dev/nvme0n1p2 /mnt
 
 3.
-#using pacstrap to install the needed programs
+# using pacstrap to install the needed programs
 #-K copied the package managers keyring to the new system
 pacstrap -K /mnt base linux linux-firmware vim nano
 
 #Using fstab to generate a filesystem table, used to tell the system where to mount partitions at boot
 genfstab -U /mnt >> /mnt/etc/fstab
 
-#Change into chroot to configure the system as if it has already been booted
+# Change into chroot to configure the system as if it has already been booted
 arch-chroot /mnt
 
 4.
 
-#once in /mnt these programs are run to configure the system 
-#sets the clock
+# Once in /mnt these programs are run to configure the system 
+# Sets the clock
 ln -sf /usr/share/zoneinfo/America/Tulsa /etc/localtime
 hwclock --systohc
 
-#configures the language settings
+# Configures the language settings
 nano /etc/locale.gen  # Uncomment en_US.UTF-8
 locale-gen
 echo "LANG=en_US.UTF-8" > /etc/locale.conf
 
-#sets the hostname
+# Sets the hostname
 echo "archvm" > /etc/hostname
 nano /etc/hosts
 # Add:
@@ -57,74 +57,90 @@ nano /etc/hosts
 passwd  
 
 5. 
-#I install grub and networkmanager
+# Installation of grub and networkmanager
 pacman -S grub networkmanager
 
-# then i install grub to the disk 
+# Installalation of grub to the disk 
 grub-install --target=i386-pc /dev/nvme0n1
 
-#This generates a grub configuration file, and -o specifies the output location for the file
+# This generates a grub configuration file, and -o specifies the output location for the file
 grub-mkconfig -o /boot/grub/grub.cfg
 
-#then this enables network manager
+# Then this enables network manager
 systemctl enable NetworkManager
 
 6.
-#After everything was finished I exit and reboot the system
+# After everything was finished I exit and reboot the system
 exit
+
 umount -R /mnt
+
 reboot
 
 7. 
-#after succesfully rebooting I create the users and the group while also giving the 2 users passwords and sudo permissions
+# after succesfully rebooting I create the users and the group while also giving the 2 users passwords and sudo permissions
 
 seradd -m -G wheel -s /bin/bash william
+
 passwd william
 
 useradd -m -G wheel -s /bin/bash codi
+
 passwd codi
 
 pacman -S sudo
+
 EDITOR=nano visudo  # Uncomment %wheel ALL=(ALL:ALL) ALL
 
 8.
-#I then install the prerequisites to the GUI by updating the system, I decided on going for lxqt
+# I then install the prerequisites to the GUI by updating the system, I decided on going for lxqt
 
 pacman -Syu
+
 pacman -S xorg sddm lxqt
+
 systemctl enable sddm
 
 
 9.
-#I then install the Zsh shell and swapped it to Zsh for both users
+# I then install the Zsh shell and swapped it to Zsh for both users
 
 pacman -S zsh
+
 chsh -s /bin/zsh william
+
 chsh -s /bin/zsh codi
 
 10. 
-#Install, enable, and start SSH
+# Install, enable, and start SSH
 
 pacman -S openssh
+
 systemctl enable sshd
+
 systemctl start sshd
 
 
 11.
-#Adding the terminal colors
+# Adding the terminal colors
 nano /home/william/.zshrc
 
-#added this to both users
+# added this to both users
 
 alias ls='ls --color=auto'
+
 alias ll='ls -la --color=auto'
+
 alias gs='git status'
+
 alias update='sudo pacman -Syu'
+
 alias grep='grep --color=auto'
 
 12.
 # and finally I started sddm after rebooting to start the GUI
 reboot
+
 systemctl start sddm
 
 
